@@ -989,20 +989,15 @@ async function fetchMetar(icao) {
 
 async function fetchTaf(icao) {
   icao = icao.toUpperCase();
-  const key = CHECKWX_KEY;
-  if (key) {
-    try {
-      const r = await fetch(`https://api.checkwx.com/taf/${icao}/decoded`, {
-        headers: { 'X-API-Key': key }
-      });
-      if (r.ok) {
-        const d = await r.json();
-        if (d.data && d.data.length) {
-          return { rawTAF: d.data[0].raw_text || '' };
-        }
+  try {
+    const r = await fetch(`${WORKER_URL}/taf/${icao}`);
+    if (r.ok) {
+      const d = await r.json();
+      if (d.data && d.data.length) {
+        return { rawTAF: d.data[0].raw_text || '' };
       }
-    } catch {}
-  }
+    }
+  } catch {}
   const url = `https://aviationweather.gov/api/data/taf?ids=${icao}&format=json`;
   try {
     const data = await fetchJSON(url, true);
@@ -1465,9 +1460,7 @@ async function runMetarLookup() {
     for (const [lbl, val] of decoded) {
       html += `<div class="result-row"><span class="result-label">${lbl}</span><span class="result-val">${val}</span></div>`;
     }
-    const { pa, da } = densityAlt(parseFloat(m.elev)||0, cond.tempC, cond.altim);
-    html += `<div class="result-row"><span class="result-label">Pressure Alt</span><span class="result-val c-dim">${pa.toLocaleString()} ft</span></div>`;
-    html += `<div class="result-row"><span class="result-label">Density Alt</span><span class="result-val ${da>5000?'c-nogo':da>2000?'c-warn':'c-dim'}">${da.toLocaleString()} ft</span></div>`;
+
     html += `</div></div>`;
 
     if (taf && taf.rawTAF) {
