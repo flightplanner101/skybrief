@@ -734,6 +734,21 @@
   </div>
 
   <div class="card">
+    <div class="card-title">⚡ API Key (Required for Live Weather)</div>
+    <div style="font-size:13px;color:var(--dim);margin-bottom:12px;line-height:1.6">
+      Get a <strong style="color:var(--text)">free</strong> API key at 
+      <a href="https://www.checkwxapi.com" target="_blank" style="color:var(--cyan)">checkwxapi.com</a> 
+      (takes 30 seconds). Paste it below to enable live METARs &amp; TAFs.
+    </div>
+    <div class="field" style="margin-bottom:12px">
+      <label>CheckWX API Key</label>
+      <input type="text" id="checkwx-key" placeholder="Paste your key here">
+    </div>
+    <button class="btn btn-go btn-full" id="btn-save-key">SAVE API KEY</button>
+    <div class="profile-saved" id="key-saved">✓ Key saved! Weather lookups are now enabled.</div>
+  </div>
+
+  <div class="card">
     <div class="card-title">Flight Log</div>
     <div id="flight-log-list">
       <div style="color:var(--dim);font-family:var(--mono);font-size:13px">No flights logged yet.</div>
@@ -942,16 +957,53 @@ async function fetchJSON(url, useProxy=false) {
   throw lastErr;
 }
 
+// CheckWX API key — free at checkwxapi.com
+const WORKER_URL = 'https://skybrief-wx.harperdavidjones2009.workers.dev';
+
 async function fetchMetar(icao) {
-  const url = `https://aviationweather.gov/api/data/metar?ids=${icao.toUpperCase()}&format=json`;
+  icao = icao.toUpperCase();
   try {
-    const data = await fetchJSON(url, true);
-    return data && data.length ? data[0] : null;
-  } catch { return null; }
+    const r = await fetch(`${WORKER_URL}/metar/${icao}`);
+    if (r.ok) {
+      const d = await r.json();
+      if (d.data && d.data.length) {
+        const m = d.data[0];
+        return {
+          rawOb:  m.raw_text || '',
+          icaoId: m.icao || icao,
+          wspd:   m.wind?.speed_kts ?? 0,
+          wgst:   m.wind?.gust_kts  ?? 0,
+          wdir:   m.wind?.degrees   ?? 0,
+          visib:  m.visibility?.miles ?? 10,
+          temp:   m.temperature?.celsius ?? 15,
+          dewp:   m.dewpoint?.celsius ?? 10,
+          altim:  m.barometer?.hg ?? 29.92,
+          elev:   m.elevation?.feet ?? 0,
+          sky:    (m.clouds||[]).map(c => ({ cover: c.code, base: c.base_feet_agl || null })),
+        };
+      }
+    }
+  } catch {}
+  return null;
 }
 
 async function fetchTaf(icao) {
-  const url = `https://aviationweather.gov/api/data/taf?ids=${icao.toUpperCase()}&format=json`;
+  icao = icao.toUpperCase();
+  const key = CHECKWX_KEY;
+  if (key) {
+    try {
+      const r = await fetch(`https://api.checkwx.com/taf/${icao}/decoded`, {
+        headers: { 'X-API-Key': key }
+      });
+      if (r.ok) {
+        const d = await r.json();
+        if (d.data && d.data.length) {
+          return { rawTAF: d.data[0].raw_text || '' };
+        }
+      }
+    } catch {}
+  }
+  const url = `https://aviationweather.gov/api/data/taf?ids=${icao}&format=json`;
   try {
     const data = await fetchJSON(url, true);
     return data && data.length ? data[0] : null;
@@ -1790,6 +1842,8 @@ function loadProfile() {
   const p = ls_get('pilot', {});
   if (p.name) document.getElementById('p-name').value = p.name;
   if (p.rating) document.getElementById('p-rating').value = p.rating;
+  const savedKey = ls_get('checkwx_key', '');
+  if (savedKey) document.getElementById('checkwx-key').value = savedKey;
   const ac = ls_get('aircraft', {});
   if (ac.name) document.getElementById('ac-name').value = ac.name;
   if (ac.tas_kt) document.getElementById('ac-tas').value = ac.tas_kt;
@@ -1858,6 +1912,14 @@ document.getElementById('btn-save-profile').onclick = () => {
   ls_set('pilot', p);
   document.getElementById('profile-saved').style.display = 'block';
   toast('Profile saved!');
+};
+
+document.getElementById('btn-save-key').onclick = () => {
+  const key = document.getElementById('checkwx-key').value.trim();
+  if (!key) { toast('Paste your API key first'); return; }
+  ls_set('checkwx_key', key);
+  document.getElementById('key-saved').style.display = 'block';
+  toast('API key saved!');
 };
 
 document.getElementById('btn-save-ac').onclick = () => {
