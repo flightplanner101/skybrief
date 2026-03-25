@@ -1,0 +1,1878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>SkyBrief ✈ GA Preflight Suite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #0a0e14;
+    --panel:    #0f1520;
+    --card:     #141e2d;
+    --border:   #1e2f45;
+    --go:       #00e676;
+    --caution:  #ffd740;
+    --nogo:     #ff4444;
+    --cyan:     #40c8e0;
+    --blue:     #2979ff;
+    --text:     #cdd6e8;
+    --dim:      #5a6a80;
+    --mono:     'Share Tech Mono', monospace;
+    --sans:     'Barlow', sans-serif;
+    --cond:     'Barlow Condensed', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(135deg, #0a0e14 0%, #0d1829 60%, #0a1220 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px 12px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    font-family: var(--cond);
+    font-weight: 900;
+    font-size: 26px;
+    letter-spacing: 2px;
+    color: var(--cyan);
+    text-shadow: 0 0 20px rgba(64,200,224,0.5);
+  }
+  .logo span { color: var(--text); opacity: 0.6; font-weight: 400; }
+  .tagline {
+    font-family: var(--cond);
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--dim);
+    text-transform: uppercase;
+    flex: 1;
+  }
+  .utc-clock {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--cyan);
+    opacity: 0.8;
+  }
+
+  /* ── NAV TABS ── */
+  nav {
+    display: flex;
+    gap: 0;
+    background: var(--panel);
+    border-bottom: 2px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  nav::-webkit-scrollbar { display: none; }
+  .tab {
+    font-family: var(--cond);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--dim);
+    padding: 12px 18px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    white-space: nowrap;
+    transition: color 0.2s, border-color 0.2s;
+    user-select: none;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--cyan); border-color: var(--cyan); }
+
+  /* ── MAIN CONTENT ── */
+  main {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 20px 16px 80px;
+  }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-family: var(--cond);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title::before {
+    content: '';
+    display: inline-block;
+    width: 3px;
+    height: 14px;
+    background: var(--cyan);
+    border-radius: 2px;
+  }
+
+  /* ── FORM ELEMENTS ── */
+  .row { display: flex; gap: 12px; margin-bottom: 12px; }
+  .field { flex: 1; }
+  label {
+    display: block;
+    font-family: var(--cond);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 5px;
+  }
+  input[type=text], input[type=number], select {
+    width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    padding: 9px 12px;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  input[type=text]:focus, input[type=number]:focus, select:focus {
+    border-color: var(--cyan);
+  }
+  input::placeholder { color: var(--dim); }
+  select option { background: var(--panel); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: var(--cond);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 11px 22px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    user-select: none;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: var(--cyan); color: #0a0e14; }
+  .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  .btn-go { background: var(--go); color: #0a0e14; }
+  .btn-full { width: 100%; justify-content: center; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── STATUS BADGES ── */
+  .badge {
+    font-family: var(--cond);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 3px;
+  }
+  .badge-go { background: rgba(0,230,118,0.15); color: var(--go); border: 1px solid rgba(0,230,118,0.3); }
+  .badge-caution { background: rgba(255,215,64,0.15); color: var(--caution); border: 1px solid rgba(255,215,64,0.3); }
+  .badge-nogo { background: rgba(255,68,68,0.15); color: var(--nogo); border: 1px solid rgba(255,68,68,0.3); }
+
+  /* ── RESULT BLOCKS ── */
+  .result-block {
+    background: var(--panel);
+    border-left: 3px solid var(--border);
+    border-radius: 0 5px 5px 0;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .result-block.go    { border-color: var(--go); }
+  .result-block.caution { border-color: var(--caution); }
+  .result-block.nogo  { border-color: var(--nogo); }
+
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .result-row:last-child { border-bottom: none; }
+  .result-label { color: var(--dim); font-size: 12px; }
+  .result-val { font-weight: 600; }
+  .c-go    { color: var(--go); }
+  .c-warn  { color: var(--caution); }
+  .c-nogo  { color: var(--nogo); }
+  .c-cyan  { color: var(--cyan); }
+  .c-dim   { color: var(--dim); }
+
+  /* ── LOADING SPINNER ── */
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--cyan);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-msg {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--dim);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 12px 0;
+  }
+
+  /* ── METAR RAW ── */
+  .metar-raw {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--caution);
+    background: rgba(255,215,64,0.05);
+    border: 1px solid rgba(255,215,64,0.15);
+    border-radius: 5px;
+    padding: 10px 12px;
+    word-break: break-all;
+    margin-bottom: 12px;
+  }
+
+  /* ── RUNWAY TABLE ── */
+  .rwy-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 12px;
+    margin-top: 8px;
+  }
+  .rwy-table th {
+    text-align: left;
+    color: var(--dim);
+    font-family: var(--cond);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 5px 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .rwy-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+  .rwy-best { color: var(--go); }
+
+  /* ── BRIEF SUMMARY ── */
+  .brief-overall {
+    text-align: center;
+    padding: 28px 20px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  .brief-overall.go { background: rgba(0,230,118,0.08); border: 2px solid rgba(0,230,118,0.3); }
+  .brief-overall.caution { background: rgba(255,215,64,0.08); border: 2px solid rgba(255,215,64,0.3); }
+  .brief-overall.nogo { background: rgba(255,68,68,0.08); border: 2px solid rgba(255,68,68,0.3); }
+  .brief-overall-icon { font-size: 42px; margin-bottom: 8px; }
+  .brief-overall-text {
+    font-family: var(--cond);
+    font-weight: 900;
+    font-size: 28px;
+    letter-spacing: 4px;
+  }
+  .brief-overall-sub {
+    font-size: 13px;
+    color: var(--dim);
+    margin-top: 5px;
+  }
+
+  /* ── CHECKLIST ── */
+  .checklist-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 14px;
+  }
+  .check-box {
+    width: 18px; height: 18px;
+    border-radius: 3px;
+    border: 1.5px solid var(--border);
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 1px;
+  }
+  .check-box.done { background: var(--go); border-color: var(--go); color: #0a0e14; }
+
+  /* ── E6B ── */
+  .e6b-result {
+    background: rgba(64,200,224,0.07);
+    border: 1px solid rgba(64,200,224,0.2);
+    border-radius: 6px;
+    padding: 14px;
+    font-family: var(--mono);
+    font-size: 14px;
+    margin-top: 12px;
+    line-height: 1.8;
+  }
+
+  /* ── QUIZ ── */
+  .quiz-q {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 1.5;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  .quiz-a {
+    background: rgba(0,230,118,0.07);
+    border: 1px solid rgba(0,230,118,0.2);
+    border-radius: 6px;
+    padding: 14px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text);
+    display: none;
+  }
+  .quiz-a.visible { display: block; }
+  .quiz-progress {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--dim);
+    margin-bottom: 8px;
+  }
+  .quiz-score-bar {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 12px 0;
+  }
+  .quiz-score-fill {
+    height: 100%;
+    background: var(--go);
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+
+  /* ── WINDS TABLE ── */
+  .winds-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+  .winds-table th {
+    text-align: right;
+    color: var(--dim);
+    font-family: var(--cond);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .winds-table th:first-child { text-align: left; }
+  .winds-table td {
+    padding: 7px 10px;
+    text-align: right;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .winds-table td:first-child { text-align: left; color: var(--cyan); }
+
+  /* ── PROFILE ── */
+  .profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  /* ── ROUTE LEGS ── */
+  .leg-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+  .leg-icao { color: var(--cyan); font-weight: 600; font-size: 14px; }
+  .leg-stats { display: flex; gap: 12px; color: var(--dim); font-size: 12px; }
+
+  /* ── DIVIDER ── */
+  .section-title {
+    font-family: var(--cond);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--dim);
+    padding: 4px 0 10px;
+    margin-top: 4px;
+  }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(60px);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 14px;
+    transition: transform 0.3s ease;
+    z-index: 999;
+    white-space: nowrap;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ── PROFILE NOTICE ── */
+  .profile-saved {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--go);
+    margin-top: 8px;
+    display: none;
+  }
+
+  /* Horizontal scroll hint on small screens */
+  @media (max-width: 400px) {
+    .tab { padding: 12px 14px; font-size: 11px; }
+    main { padding: 16px 12px 80px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">SKY<span>BRIEF</span> ✈</div>
+    <div class="tagline">General Aviation Preflight Suite</div>
+  </div>
+  <div class="utc-clock" id="clock">--:--:-- UTC</div>
+</header>
+
+<nav id="nav">
+  <div class="tab active" data-page="brief">📋 Brief</div>
+  <div class="tab" data-page="metar">📡 METAR</div>
+  <div class="tab" data-page="winds">💨 Winds</div>
+  <div class="tab" data-page="xc">✈ X-Country</div>
+  <div class="tab" data-page="e6b">🧮 E6B</div>
+  <div class="tab" data-page="quiz">📚 Quiz</div>
+  <div class="tab" data-page="profile">👤 Profile</div>
+</nav>
+
+<main>
+
+<!-- ══════════════════════════════════════════════ BRIEF PAGE -->
+<div class="page active" id="page-brief">
+
+  <div class="card">
+    <div class="card-title">Flight Setup</div>
+    <div class="row">
+      <div class="field">
+        <label>Departure ICAO</label>
+        <input type="text" id="b-dep" placeholder="KPDK" maxlength="6" style="text-transform:uppercase">
+      </div>
+      <div class="field">
+        <label>Destination ICAO</label>
+        <input type="text" id="b-dest" placeholder="Optional" maxlength="6" style="text-transform:uppercase">
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>Pilot Rating</label>
+        <select id="b-rating">
+          <option value="solo_local">Solo — Local</option>
+          <option value="solo_pattern">Solo — Pattern</option>
+          <option value="solo_xc">Solo — Cross Country</option>
+          <option value="ppl_local" selected>PPL — Local/Pattern</option>
+          <option value="ppl_xc">PPL — Cross Country</option>
+          <option value="ifr">IFR Flight</option>
+          <option value="dual">Dual / With Instructor</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Cruise Alt (ft)</label>
+        <input type="number" id="b-alt" placeholder="6500" value="6500">
+      </div>
+    </div>
+    <button class="btn btn-primary btn-full" id="btn-brief">RUN PREFLIGHT BRIEF</button>
+  </div>
+
+  <div id="brief-results" style="display:none"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════ METAR PAGE -->
+<div class="page" id="page-metar">
+
+  <div class="card">
+    <div class="card-title">METAR / Airport Lookup</div>
+    <div class="row">
+      <div class="field">
+        <label>Airport ICAO</label>
+        <input type="text" id="m-icao" placeholder="KATL" maxlength="6" style="text-transform:uppercase">
+      </div>
+      <div style="display:flex;align-items:flex-end;padding-bottom:0">
+        <button class="btn btn-primary" id="btn-metar">FETCH</button>
+      </div>
+    </div>
+    <div class="section-title">— or decode a raw METAR —</div>
+    <div class="field" style="margin-bottom:12px">
+      <label>Raw METAR Text</label>
+      <input type="text" id="m-raw" placeholder="KATL 241253Z 27008KT ...">
+    </div>
+    <button class="btn btn-secondary btn-full" id="btn-decode">DECODE RAW METAR</button>
+  </div>
+
+  <div id="metar-results"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════ WINDS PAGE -->
+<div class="page" id="page-winds">
+
+  <div class="card">
+    <div class="card-title">Winds Aloft Viewer</div>
+    <div class="row">
+      <div class="field">
+        <label>Airport ICAO</label>
+        <input type="text" id="w-icao" placeholder="KPDK" maxlength="6" style="text-transform:uppercase">
+      </div>
+      <div style="display:flex;align-items:flex-end">
+        <button class="btn btn-primary" id="btn-winds">FETCH</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="winds-results"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════ XC PAGE -->
+<div class="page" id="page-xc">
+
+  <div class="card">
+    <div class="card-title">Cross-Country Planner</div>
+    <div class="field" style="margin-bottom:12px">
+      <label>Route (space-separated ICAOs)</label>
+      <input type="text" id="xc-route" placeholder="KPDK KVPC KCSV KMKJ" style="text-transform:uppercase">
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>TAS (kt)</label>
+        <input type="number" id="xc-tas" placeholder="110" value="110">
+      </div>
+      <div class="field">
+        <label>Cruise Alt (ft)</label>
+        <input type="number" id="xc-alt" placeholder="6500" value="6500">
+      </div>
+      <div class="field">
+        <label>Fuel Burn (gph)</label>
+        <input type="number" id="xc-burn" placeholder="8.5">
+      </div>
+    </div>
+    <button class="btn btn-primary btn-full" id="btn-xc">PLAN ROUTE</button>
+  </div>
+
+  <div id="xc-results"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════ E6B PAGE -->
+<div class="page" id="page-e6b">
+
+  <div class="card">
+    <div class="card-title">E6B Calculator</div>
+    <select id="e6b-mode" style="margin-bottom:14px;width:100%;background:var(--panel);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:var(--mono);font-size:14px;padding:9px 12px;outline:none;">
+      <option value="tsd">Time / Speed / Distance</option>
+      <option value="fuel">Fuel Burn</option>
+      <option value="wca">Wind Correction Angle</option>
+      <option value="da">Density Altitude</option>
+      <option value="tas">IAS → TAS Conversion</option>
+      <option value="conv">Unit Conversions</option>
+      <option value="wb">Weight & Balance</option>
+    </select>
+    <div id="e6b-inputs"></div>
+    <button class="btn btn-primary btn-full" id="btn-e6b" style="margin-top:12px">CALCULATE</button>
+    <div id="e6b-result" class="e6b-result" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ QUIZ PAGE -->
+<div class="page" id="page-quiz">
+
+  <div class="card" id="quiz-setup">
+    <div class="card-title">Oral Exam Quiz</div>
+    <div class="row">
+      <div class="field">
+        <label>Category</label>
+        <select id="q-cat">
+          <option value="all">All Topics (Mixed)</option>
+          <option value="general">General Knowledge</option>
+          <option value="airspace">Airspace</option>
+          <option value="weather">Weather Theory</option>
+          <option value="regs">Regulations (FARs)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Questions</label>
+        <input type="number" id="q-num" value="5" min="1" max="30">
+      </div>
+    </div>
+    <button class="btn btn-primary btn-full" id="btn-quiz-start">START QUIZ</button>
+  </div>
+
+  <div id="quiz-active" style="display:none">
+    <div class="card">
+      <div class="quiz-progress" id="quiz-prog">Q 1 / 5</div>
+      <div class="quiz-score-bar"><div class="quiz-score-fill" id="quiz-bar" style="width:0%"></div></div>
+      <div class="quiz-q" id="quiz-question"></div>
+      <div class="quiz-a" id="quiz-answer"></div>
+      <div style="display:flex;gap:10px;margin-top:14px;" id="quiz-btns">
+        <button class="btn btn-secondary" style="flex:1" id="btn-reveal">REVEAL ANSWER</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="quiz-done" style="display:none">
+    <div class="card" id="quiz-done-card">
+      <div class="card-title">Quiz Complete</div>
+      <div id="quiz-score-display" style="text-align:center;padding:20px 0;font-family:var(--cond);font-size:48px;font-weight:900"></div>
+      <div id="quiz-score-msg" style="text-align:center;font-size:14px;color:var(--dim);margin-bottom:16px"></div>
+      <button class="btn btn-primary btn-full" id="btn-quiz-restart">TRY AGAIN</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ PROFILE PAGE -->
+<div class="page" id="page-profile">
+
+  <div class="card">
+    <div class="card-title">Pilot Profile</div>
+    <div class="row">
+      <div class="field">
+        <label>Your Name</label>
+        <input type="text" id="p-name" placeholder="Your Name">
+      </div>
+      <div class="field">
+        <label>Rating</label>
+        <select id="p-rating">
+          <option value="Student">Student</option>
+          <option value="PPL">PPL</option>
+          <option value="IFR">Instrument</option>
+          <option value="CPL">Commercial</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-go btn-full" id="btn-save-profile">SAVE PROFILE</button>
+    <div class="profile-saved" id="profile-saved">✓ Profile saved!</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Aircraft Profile</div>
+    <div class="row">
+      <div class="field">
+        <label>Name / Tail</label>
+        <input type="text" id="ac-name" placeholder="N12345 C172">
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>TAS (kt)</label>
+        <input type="number" id="ac-tas" placeholder="110">
+      </div>
+      <div class="field">
+        <label>Climb (fpm)</label>
+        <input type="number" id="ac-climb" placeholder="700">
+      </div>
+      <div class="field">
+        <label>Burn (gph)</label>
+        <input type="number" id="ac-burn" placeholder="8.5">
+      </div>
+    </div>
+    <button class="btn btn-secondary btn-full" id="btn-save-ac">SAVE AIRCRAFT</button>
+    <div class="profile-saved" id="ac-saved">✓ Aircraft saved!</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Flight Log</div>
+    <div id="flight-log-list">
+      <div style="color:var(--dim);font-family:var(--mono);font-size:13px">No flights logged yet.</div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<div id="toast">✓ Copied</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  CONSTANTS & PROFILES
+// ═══════════════════════════════════════════════════════════════
+
+const PROFILES = {
+  solo_local:    {label:"Solo — Local",         wind_speed:{caution:10,no_go:12},crosswind:{caution:6,no_go:7},gusts:{caution:10,no_go:12},visibility:{caution:9.9,no_go:9.9},ceiling:{caution:4200,no_go:3500}},
+  solo_pattern:  {label:"Solo — Pattern",       wind_speed:{caution:10,no_go:12},crosswind:{caution:6,no_go:7},gusts:{caution:10,no_go:12},visibility:{caution:6,no_go:5},ceiling:{caution:1800,no_go:1500}},
+  solo_xc:       {label:"Solo — Cross Country", wind_speed:{caution:10,no_go:12},crosswind:{caution:6,no_go:7},gusts:{caution:10,no_go:12},visibility:{caution:9.9,no_go:9.9},ceiling:{caution:7200,no_go:6000}},
+  ppl_local:     {label:"PPL — Local/Pattern",  wind_speed:{caution:18,no_go:25},crosswind:{caution:12,no_go:15},gusts:{caution:12,no_go:18},visibility:{caution:4,no_go:3},ceiling:{caution:1500,no_go:1000}},
+  ppl_xc:        {label:"PPL — Cross Country",  wind_speed:{caution:18,no_go:25},crosswind:{caution:12,no_go:15},gusts:{caution:12,no_go:18},visibility:{caution:5,no_go:3},ceiling:{caution:2000,no_go:1500}},
+  ifr:           {label:"IFR Flight",            wind_speed:{caution:22,no_go:30},crosswind:{caution:15,no_go:20},gusts:{caution:15,no_go:20},visibility:{caution:1,no_go:0.75},ceiling:{caution:500,no_go:300}},
+  dual:          {label:"Dual / With Instructor",wind_speed:{caution:18,no_go:25},crosswind:{caution:10,no_go:15},gusts:{caution:12,no_go:18},visibility:{caution:4,no_go:3},ceiling:{caution:2000,no_go:1000}},
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  QUIZ BANKS
+// ═══════════════════════════════════════════════════════════════
+
+const QUIZ_BANK = [
+  ["What is a METAR?","A routine aviation weather report that gives current surface weather conditions at an airport, issued hourly or more frequently."],
+  ["What does VFR stand for and what are the basic requirements?","Visual Flight Rules. Requires 3 sm visibility and clear of clouds in Class G below 1,200 ft AGL."],
+  ["What is a TAF?","Terminal Aerodrome Forecast — a 24- or 30-hour weather forecast for an airport area, issued every 6 hours."],
+  ["What is density altitude?","Pressure altitude corrected for non-standard temperature. High DA reduces aircraft performance (lift, thrust, climb rate)."],
+  ["What is the 1-2-3 rule for alternates?","If within 1 hour before/after ETA, forecast ceiling <2,000 ft or visibility <3 sm, you must file an alternate (FAR 91.169)."],
+  ["What does 'OVC010' mean in a METAR?","Overcast cloud layer at 1,000 ft AGL (010 × 100 = 1,000 ft)."],
+  ["How do you determine the best runway to use?","Select the runway with the most headwind component and least crosswind. Check ATIS/AWOS, then confirm with ATC or CTAF."],
+  ["What is a PIREP?","Pilot Report — a weather observation made by pilots in flight, covering turbulence, icing, winds, visibility, and cloud tops."],
+  ["When is night defined for currency purposes?","One hour after sunset to one hour before sunrise."],
+  ["What is the VFR cruising altitude rule?","East (0–179°): odd thousands + 500 ft. West (180–359°): even thousands + 500 ft. Applies above 3,000 ft AGL."],
+  ["What is pressure altitude?","Altitude above the standard datum plane (29.92 inHg). Used in performance charts and to compute density altitude."],
+  ["What is an AIRMET?","Airman's Meteorological Information — advisories for weather conditions that may affect smaller aircraft: turbulence, icing, IFR conditions."],
+  ["Define 'ceiling' in aviation weather.","The height above the ground of the lowest broken (BKN) or overcast (OVC) cloud layer."],
+  ["What does 'SKC' mean in a METAR?","Sky Clear — no clouds reported. Used by automated stations; 'CLR' means below 12,000 ft."],
+  ["What is wake turbulence?","Rotating vortices generated by an aircraft's wings at altitude. Most severe behind heavy jets. Avoid by flying above/upwind of preceding aircraft."],
+];
+
+const AIRSPACE_QUIZ = [
+  ["What are the cloud clearance requirements in Class B airspace?","Clear of clouds (no specific distance required)."],
+  ["What are the VFR visibility minimums in Class B airspace?","3 statute miles."],
+  ["What equipment is required to fly in Class B airspace?","Two-way radio, Mode C transponder, and ATC clearance to enter."],
+  ["What is the floor of Class A airspace?","18,000 ft MSL."],
+  ["Do you need a clearance to enter Class D airspace?","No clearance required, but you must establish two-way radio communication with the tower before entering."],
+  ["What are the VFR cloud clearance requirements in Class E airspace above 10,000 ft MSL?","1,000 ft above, 1,000 ft below, and 1 sm horizontal. Visibility: 5 sm."],
+  ["What is Class G airspace?","Uncontrolled airspace not designated as A, B, C, D, or E. No ATC clearance or communication required."],
+  ["What is the lateral boundary of Class D airspace?","Typically a 4-nautical-mile radius from the primary airport, defined by the dashed blue line on a sectional."],
+  ["Can you fly VFR in Class A airspace?","No. All operations in Class A require an IFR clearance."],
+  ["What does a solid blue circle on a sectional chart indicate?","Class D airspace — towered airport with part-time or full-time control tower."],
+  ["What is a MOA?","Military Operations Area — alerts pilots to military training activity. VFR pilots may enter but should exercise caution and contact the controlling agency."],
+];
+
+const WEATHER_QUIZ = [
+  ["What causes a temperature inversion?","A layer of warm air trapping cooler air below it, reversing the normal lapse rate. Associated with fog, haze, and smooth air."],
+  ["What type of front brings a rapid weather change, towering cumulus, and gusty winds?","A cold front."],
+  ["What is a microburst?","A severe downdraft from a thunderstorm, creating dangerous wind shear. Can cause airspeed loss of 40–60 kt in seconds."],
+  ["What cloud type is associated with thunderstorms?","Cumulonimbus (CB). Towering Cumulus (TCU) indicates a developing CB."],
+  ["What does 'TS' in a METAR or TAF indicate?","Thunderstorm."],
+  ["What is wind shear?","A sudden change in wind speed or direction over a short distance — horizontal or vertical."],
+  ["What is dew point spread?","The difference between temperature and dew point. A spread of 4°C or less indicates high humidity and likely fog or low clouds."],
+  ["What is a SIGMET?","Significant Meteorological Information — issued for hazards to all aircraft: severe turbulence, severe icing, volcanic ash, widespread dust."],
+  ["What is the standard temperature lapse rate?","2°C per 1,000 ft (approximately 3.5°F per 1,000 ft)."],
+  ["What is orographic lift?","Lift caused by air being forced upward over terrain. Can cause significant turbulence on the lee side (lee waves)."],
+];
+
+const REGS_QUIZ = [
+  ["What is required for a student pilot to fly solo?","A solo endorsement from a CFI in the pilot's logbook, valid student pilot certificate, and specific aircraft endorsement."],
+  ["What is a BFR (Flight Review)?","Required every 24 calendar months to act as PIC. Includes 1 hour of ground and 1 hour of flight with a CFI."],
+  ["What are the recency requirements to carry passengers during the day?","3 takeoffs and 3 landings in the same category, class, and type (if required) within the preceding 90 days."],
+  ["What does FAR 91.151 require for VFR fuel reserves?","Day: enough fuel to fly to the first intended destination plus 30 minutes at cruise. Night: plus 45 minutes."],
+  ["What is the minimum safe altitude over a congested area?","1,000 ft above the highest obstacle within 2,000 ft of the aircraft (FAR 91.119)."],
+  ["What is the minimum safe altitude over open water or sparsely populated areas?","500 ft AGL (FAR 91.119)."],
+  ["When is a transponder required?","In Class A, B, and C airspace; above 10,000 ft MSL (except within 2,500 ft of surface); and within 30 nm of a Class B primary airport."],
+  ["What is the speed limit below 10,000 ft MSL?","250 knots indicated airspeed (FAR 91.117)."],
+  ["What is the speed limit within 4 nm of a Class C or D airport below 2,500 ft AGL?","200 knots."],
+  ["When must you file a flight plan?","Required for IFR operations and Class A airspace. Strongly recommended for VFR cross-countries."],
+];
+
+const ALL_QUIZ = [...QUIZ_BANK, ...AIRSPACE_QUIZ, ...WEATHER_QUIZ, ...REGS_QUIZ];
+
+// ═══════════════════════════════════════════════════════════════
+//  UTILITY
+// ═══════════════════════════════════════════════════════════════
+
+function ls_get(k, d=null) { try { const v=localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } }
+function ls_set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function loading(msg='Fetching data...') {
+  return `<div class="loading-msg"><span class="spinner"></span>${msg}</div>`;
+}
+
+function rate(key, value, lim) {
+  const lo = lim[key];
+  if (!lo) return 'GO';
+  if (key === 'visibility' || key === 'ceiling') {
+    if (value <= lo.no_go) return 'NO-GO';
+    if (value <= lo.caution) return 'CAUTION';
+    return 'GO';
+  } else {
+    if (value >= lo.no_go) return 'NO-GO';
+    if (value >= lo.caution) return 'CAUTION';
+    return 'GO';
+  }
+}
+
+function statusClass(s) {
+  return s === 'GO' ? 'c-go' : s === 'NO-GO' ? 'c-nogo' : 'c-warn';
+}
+
+function statusBadge(s) {
+  const cls = s === 'GO' ? 'badge-go' : s === 'NO-GO' ? 'badge-nogo' : 'badge-caution';
+  return `<span class="badge ${cls}">${s}</span>`;
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i=a.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+
+// Math helpers
+function toRad(d) { return d * Math.PI / 180; }
+function toDeg(r) { return r * 180 / Math.PI; }
+
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 3440.065; // nm
+  const dLat = toRad(lat2-lat1), dLon = toRad(lon2-lon1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function trueCourse(lat1, lon1, lat2, lon2) {
+  const dLon = toRad(lon2-lon1);
+  const y = Math.sin(dLon)*Math.cos(toRad(lat2));
+  const x = Math.cos(toRad(lat1))*Math.sin(toRad(lat2)) - Math.sin(toRad(lat1))*Math.cos(toRad(lat2))*Math.cos(dLon);
+  return (toDeg(Math.atan2(y,x)) + 360) % 360;
+}
+
+function magDeclination(lat, lon) {
+  // Rough approximation for CONUS
+  return -(lon * 0.35 + lat * 0.07 - 10);
+}
+
+function windCorrection(tas, wd, ws, tc) {
+  const wdRad = toRad(wd), tcRad = toRad(tc);
+  const swc = (ws/tas) * Math.sin(toRad(wd - tc));
+  const wca = toDeg(Math.asin(Math.max(-1, Math.min(1, swc))));
+  const hdg = (tc + wca + 360) % 360;
+  const gs = tas * Math.cos(toRad(wca)) - ws * Math.cos(toRad(wd - tc));
+  return { wca, hdg, gs: Math.max(0, gs) };
+}
+
+function densityAlt(elev, tempC, altim) {
+  const pa = elev + (29.92 - altim) * 1000;
+  const isaTempC = 15.0 - 0.00198 * pa;
+  const da = pa + 120 * (tempC - isaTempC);
+  return { pa: Math.round(pa), da: Math.round(da) };
+}
+
+function iasTas(ias, altFt, tempC) {
+  const stdK = 288.15 - 0.0019812 * altFt;
+  const actK = tempC + 273.15;
+  return Math.round(ias * Math.sqrt(actK / stdK) * 10) / 10;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  NETWORK HELPERS
+// ═══════════════════════════════════════════════════════════════
+
+const PROXY = 'https://corsproxy.io/?';
+
+async function fetchJSON(url, useProxy=false) {
+  const u = useProxy ? PROXY + encodeURIComponent(url) : url;
+  const r = await fetch(u, { headers: { 'Accept': 'application/json' } });
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+
+async function fetchMetar(icao) {
+  const url = `https://aviationweather.gov/api/data/metar?ids=${icao.toUpperCase()}&format=json`;
+  try {
+    const data = await fetchJSON(url);
+    return data && data.length ? data[0] : null;
+  } catch { return null; }
+}
+
+async function fetchTaf(icao) {
+  const url = `https://aviationweather.gov/api/data/taf?ids=${icao.toUpperCase()}&format=json`;
+  try {
+    const data = await fetchJSON(url);
+    return data && data.length ? data[0] : null;
+  } catch { return null; }
+}
+
+async function fetchWindsAloft(lat, lon, altFt) {
+  const altMap = [[2500,925],[5000,850],[10000,700],[14000,600],[18000,500],[24000,400],[30000,300]];
+  const hpa = altMap.reduce((a,b) => Math.abs(b[0]-altFt) < Math.abs(a[0]-altFt) ? b : a)[1];
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}&hourly=wind_speed_${hpa}hPa,wind_direction_${hpa}hPa,temperature_${hpa}hPa&wind_speed_unit=kn&forecast_days=1&timezone=auto`;
+  try {
+    const data = await fetchJSON(url);
+    const h = data.hourly || {};
+    const spds = h[`wind_speed_${hpa}hPa`] || [];
+    const dirs = h[`wind_direction_${hpa}hPa`] || [];
+    const tmps = h[`temperature_${hpa}hPa`] || [];
+    for (let i=0; i<spds.length; i++) {
+      if (spds[i] != null && dirs[i] != null) {
+        return { dir: dirs[i], spd: spds[i], temp: tmps[i] != null ? tmps[i] : null };
+      }
+    }
+  } catch {}
+  return null;
+}
+
+async function fetchFreezingLevel(lat, lon) {
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}&hourly=freezinglevel_height&forecast_days=1&timezone=auto`;
+  try {
+    const data = await fetchJSON(url);
+    const levels = (data.hourly || {}).freezinglevel_height || [];
+    for (const l of levels) { if (l != null) return l * 3.28084; }
+  } catch {}
+  return null;
+}
+
+// Airport coords from OurAirports (cached)
+let _apCache = null;
+async function getAirports() {
+  if (_apCache) return _apCache;
+  const url = 'https://davidmegginson.github.io/ourairports-data/airports.csv';
+  try {
+    const r = await fetch(PROXY + encodeURIComponent(url));
+    const text = await r.text();
+    const rows = text.trim().split('\n');
+    const hdr = rows[0].split(',').map(h => h.replace(/"/g,'').trim());
+    _apCache = rows.slice(1).map(row => {
+      const cols = row.split(',');
+      const obj = {};
+      hdr.forEach((h,i) => { obj[h] = (cols[i]||'').replace(/"/g,'').trim(); });
+      return obj;
+    });
+    return _apCache;
+  } catch { return []; }
+}
+
+async function findAirport(icao) {
+  icao = icao.toUpperCase();
+  const aps = await getAirports();
+  return aps.find(a => (a.ident||'').toUpperCase()===icao || (a.gps_code||'').toUpperCase()===icao || (a.icao_code||'').toUpperCase()===icao) || null;
+}
+
+function parseConditions(m) {
+  const windSpeed = parseFloat(m.wspd) || 0;
+  const gustRaw = parseFloat(m.wgst) || 0;
+  const gusts = Math.max(0, gustRaw - windSpeed);
+  let vis;
+  try { vis = m.visib != null ? parseFloat(m.visib) : 10; } catch { vis = 10; }
+  const sky = m.sky || [];
+  let ceiling = 99999;
+  for (const layer of sky) {
+    if (['BKN','OVC'].includes(layer.cover)) ceiling = Math.min(ceiling, layer.base || 99999);
+  }
+  let windDir = 0;
+  try { windDir = isNaN(parseFloat(m.wdir)) ? 0 : parseFloat(m.wdir); } catch {}
+  return {
+    windSpeed, gusts, visibility: vis, ceiling,
+    windDir, tempC: parseFloat(m.temp) || 15, altim: parseFloat(m.altim) || 29.92
+  };
+}
+
+function crosswind(ws, wd, rwyHdg) {
+  const angle = Math.abs(wd - rwyHdg) % 360;
+  const a = angle > 180 ? 360 - angle : angle;
+  return Math.round(ws * Math.sin(toRad(a)) * 10) / 10;
+}
+
+function headwind(ws, wd, rwyHdg) {
+  return Math.round(ws * Math.cos(toRad(wd - rwyHdg)) * 10) / 10;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  METAR DECODER
+// ═══════════════════════════════════════════════════════════════
+
+function decodeMetar(raw) {
+  const parts = raw.trim().split(/\s+/);
+  const lines = [];
+  let i = 0;
+
+  if (['METAR','SPECI'].includes(parts[i])) { lines.push(['Type', parts[i++]]); }
+  if (i < parts.length) { lines.push(['Station', parts[i++]]); }
+  if (i < parts.length && /\d{6}Z/.test(parts[i])) {
+    const t = parts[i++];
+    lines.push(['Time (UTC)', `Day ${t.slice(0,2)}, ${t.slice(2,4)}:${t.slice(4,6)}`]);
+  }
+  // Wind
+  if (i < parts.length) {
+    const wp = parts[i];
+    const vm = wp.match(/^VRB(\d+)(G(\d+))?KT$/);
+    const wm = wp.match(/^(\d{3})(\d{2,3})(G(\d{2,3}))?KT$/);
+    if (vm) {
+      lines.push(['Wind', `Variable at ${vm[1]} kt${vm[3] ? `, gusting ${vm[3]} kt` : ''}`]); i++;
+    } else if (wm) {
+      lines.push(['Wind', `${wm[1]}° at ${wm[2]} kt${wm[4] ? `, gusting ${wm[4]} kt` : ''}`]); i++;
+    }
+  }
+  // Visibility
+  if (i < parts.length) {
+    let vs = '';
+    if (/^\d+SM$/.test(parts[i])) { vs = parts[i].replace('SM',''); i++; }
+    else if (/^\d+\/\d+SM$/.test(parts[i])) { vs = parts[i].replace('SM',''); i++; }
+    else if (i+1 < parts.length && /^\d+\/\d+SM$/.test(parts[i+1])) { vs = `${parts[i]} ${parts[i+1].replace('SM','')}`; i+=2; }
+    if (vs) lines.push(['Visibility', `${vs} statute miles`]);
+  }
+  // Sky
+  const skyLayers = [];
+  const coverMap = {FEW:'Few',SCT:'Scattered',BKN:'Broken (ceiling)',OVC:'Overcast (ceiling)',SKC:'Sky Clear',CLR:'Clear',CAVOK:'CAVOK'};
+  while (i < parts.length) {
+    const sm = parts[i].match(/^(FEW|SCT|BKN|OVC|SKC|CLR|CAVOK)(\d{3})?(CB|TCU)?$/);
+    if (!sm) break;
+    const cov = coverMap[sm[1]] || sm[1];
+    if (sm[2]) skyLayers.push(`${cov} at ${parseInt(sm[2])*100} ft AGL${sm[3]?' ('+sm[3]+')':''}`);
+    else skyLayers.push(cov);
+    i++;
+  }
+  if (skyLayers.length) lines.push(['Sky', skyLayers.join(' | ')]);
+  // Temp/Dew
+  if (i < parts.length && /^M?\d+\/M?\d+$/.test(parts[i])) {
+    const td = parts[i].split('/');
+    lines.push(['Temp / Dewpoint', `${td[0].replace('M','-')}°C  /  ${(td[1]||'?').replace('M','-')}°C`]);
+    i++;
+  }
+  // Altimeter
+  if (i < parts.length) {
+    if (/^A\d{4}$/.test(parts[i])) { lines.push(['Altimeter', `${parseInt(parts[i].slice(1))/100} inHg`]); i++; }
+    else if (/^Q\d{4}$/.test(parts[i])) { lines.push(['Altimeter', `${parts[i].slice(1)} hPa`]); i++; }
+  }
+  // Remarks
+  const rmkIdx = parts.indexOf('RMK');
+  if (rmkIdx >= 0) lines.push(['Remarks', parts.slice(rmkIdx+1).join(' ')]);
+
+  return lines;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  RENDER HELPERS
+// ═══════════════════════════════════════════════════════════════
+
+function renderConditionBlock(cond, limits, icao, aptName, role) {
+  const cx = crosswind(cond.windSpeed, cond.windDir, 360); // placeholder until runway known
+  const fields = [
+    ['Wind Speed', cond.windSpeed, 'kt', 'wind_speed'],
+    ['Visibility', cond.visibility, 'sm', 'visibility'],
+    ['Ceiling', cond.ceiling >= 99999 ? 'CLR' : cond.ceiling, cond.ceiling >= 99999 ? '' : 'ft', 'ceiling'],
+    ['Gusts', cond.gusts, 'kt', 'gusts'],
+  ];
+  const results = fields.map(([lbl, val, unit, key]) => {
+    if (key === 'ceiling' && val === 'CLR') return { lbl, val: 'CLR', unit: '', status: 'GO' };
+    return { lbl, val, unit, status: rate(key, val, limits) };
+  });
+  const overall = results.some(r => r.status === 'NO-GO') ? 'NO-GO' :
+                  results.some(r => r.status === 'CAUTION') ? 'CAUTION' : 'GO';
+  const { pa, da } = densityAlt(parseFloat(cond.altim ? ((cond.altim - 29.92) * 1000) : 0) || 0, cond.tempC, cond.altim);
+
+  let html = `
+    <div class="card">
+      <div class="card-title" style="justify-content:space-between">
+        <span>✈ ${role} — ${icao}</span>
+        ${statusBadge(overall)}
+      </div>
+      <div class="metar-raw" id="raw-${icao}"></div>
+      <div class="result-block ${overall.toLowerCase().replace('-','').replace('nogo','nogo')}">
+  `;
+  for (const {lbl, val, unit, status} of results) {
+    const cls = statusClass(status);
+    html += `<div class="result-row">
+      <span class="result-label">${lbl}</span>
+      <span class="result-val ${cls}">${typeof val === 'number' ? val.toFixed(val%1?1:0) : val}${unit ? ' '+unit : ''} — ${status}</span>
+    </div>`;
+  }
+  html += `<div class="result-row">
+    <span class="result-label">Density Altitude</span>
+    <span class="result-val ${da > 5000 ? 'c-nogo' : da > 2000 ? 'c-warn' : 'c-dim'}">${da.toLocaleString()} ft</span>
+  </div>`;
+  html += `</div></div>`;
+  return { html, overall, aptName };
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  BRIEF
+// ═══════════════════════════════════════════════════════════════
+
+async function runBrief() {
+  const dep = document.getElementById('b-dep').value.trim().toUpperCase();
+  const dest = document.getElementById('b-dest').value.trim().toUpperCase();
+  const rating = document.getElementById('b-rating').value;
+  const alt = parseInt(document.getElementById('b-alt').value) || 6500;
+  if (!dep) { toast('Enter a departure airport'); return; }
+
+  const lim = PROFILES[rating];
+  const el = document.getElementById('brief-results');
+  el.style.display = 'block';
+  el.innerHTML = loading('Fetching METARs & TAFs...');
+
+  try {
+    // Fetch dep
+    const [depMetar, depTaf, depApt] = await Promise.all([
+      fetchMetar(dep), fetchTaf(dep),
+      findAirport(dep).catch(() => null)
+    ]);
+
+    let destMetar = null, destTaf = null, destApt = null;
+    let navData = null;
+
+    if (dest) {
+      [destMetar, destTaf, destApt] = await Promise.all([
+        fetchMetar(dest), fetchTaf(dest),
+        findAirport(dest).catch(() => null)
+      ]);
+    }
+
+    // Build nav data if XC
+    if (dest && depApt && destApt) {
+      const dlat = parseFloat(depApt.latitude_deg), dlon = parseFloat(depApt.longitude_deg);
+      const tlat = parseFloat(destApt.latitude_deg), tlon = parseFloat(destApt.longitude_deg);
+      const dist = haversine(dlat, dlon, tlat, tlon);
+      const tc = trueCourse(dlat, dlon, tlat, tlon);
+      const midLat = (dlat+tlat)/2, midLon = (dlon+tlon)/2;
+
+      el.innerHTML = loading('Computing navigation & winds aloft...');
+      const [winds, freezeM] = await Promise.all([
+        fetchWindsAloft(midLat, midLon, alt),
+        fetchFreezingLevel(midLat, midLon)
+      ]);
+
+      let gs = 100, wca = 0, magHdg = tc;
+      if (winds) {
+        const wc = windCorrection(110, winds.dir, winds.spd, tc);
+        gs = wc.gs; wca = wc.wca;
+        const decl = magDeclination(midLat, midLon);
+        magHdg = (tc + wca + decl + 360) % 360;
+      }
+      const ete = dist / gs;
+      navData = { dlat, dlon, tlat, tlon, dist, tc, alt, winds, freezeM, gs, wca, magHdg, ete };
+    }
+
+    // Alternate check
+    let altRequired = false;
+    if (destTaf) {
+      const raw = destTaf.rawTAF || '';
+      altRequired = /OVC0(0[0-9]|1[0-9])|BKN0(0[0-9]|1[0-9])/.test(raw) || /\b[12]SM\b|\b[0-9]\/[0-9]SM\b/.test(raw);
+    } else if (dest) {
+      altRequired = true;
+    }
+
+    // Render
+    let html = '';
+    const allOveralls = [];
+
+    // Dep conditions
+    if (depMetar) {
+      const cond = parseConditions(depMetar);
+      const { pa, da } = densityAlt(0, cond.tempC, cond.altim);
+      const fields = [
+        ['Wind Speed', cond.windSpeed, 'kt', 'wind_speed'],
+        ['Visibility', cond.visibility.toFixed(1), 'sm', 'visibility'],
+        ['Ceiling', cond.ceiling >= 99999 ? 'CLR' : cond.ceiling, cond.ceiling >= 99999 ? '' : 'ft', 'ceiling'],
+        ['Gusts', cond.gusts, 'kt', 'gusts'],
+      ];
+      const results = fields.map(([lbl, val, unit, key]) => ({
+        lbl, val, unit, status: (key==='ceiling' && val==='CLR') ? 'GO' : rate(key, parseFloat(val)||0, lim)
+      }));
+      const overall = results.some(r=>r.status==='NO-GO') ? 'NO-GO' : results.some(r=>r.status==='CAUTION') ? 'CAUTION' : 'GO';
+      allOveralls.push(overall);
+
+      html += `<div class="card">
+        <div class="card-title" style="justify-content:space-between">
+          <span>🛫 DEPARTURE — ${dep}${depApt?' ('+depApt.name+')':''}</span>
+          ${statusBadge(overall)}
+        </div>`;
+      if (depMetar.rawOb) html += `<div class="metar-raw">${depMetar.rawOb}</div>`;
+      html += `<div class="result-block ${overall==='NO-GO'?'nogo':overall==='CAUTION'?'caution':'go'}">`;
+      for (const {lbl, val, unit, status} of results) {
+        const cls = statusClass(status);
+        html += `<div class="result-row"><span class="result-label">${lbl}</span><span class="result-val ${cls}">${val}${unit?' '+unit:''} — ${status}</span></div>`;
+      }
+      // DA
+      const daEl = depApt ? densityAlt(parseFloat(depApt.elevation_ft)||0, cond.tempC, cond.altim) : {da: 'N/A', pa: 'N/A'};
+      if (depApt) {
+        html += `<div class="result-row"><span class="result-label">Density Altitude</span><span class="result-val ${daEl.da>5000?'c-nogo':daEl.da>2000?'c-warn':'c-dim'}">${typeof daEl.da === 'number' ? daEl.da.toLocaleString()+' ft' : daEl.da}</span></div>`;
+      }
+      html += `<div class="result-row"><span class="result-label">Temp / Altimeter</span><span class="result-val c-dim">${cond.tempC.toFixed(0)}°C / ${cond.altim.toFixed(2)} inHg</span></div>`;
+      html += `</div>`;
+      if (depTaf && depTaf.rawTAF) {
+        html += `<div style="margin-top:10px"><div class="section-title">TAF — ${dep}</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--caution);background:rgba(255,215,64,0.04);border:1px solid rgba(255,215,64,0.1);border-radius:5px;padding:10px;white-space:pre-wrap;word-break:break-all">${depTaf.rawTAF}</div></div>`;
+      }
+      html += `</div>`;
+    } else {
+      html += `<div class="card"><div class="card-title">🛫 DEPARTURE — ${dep}</div><div style="color:var(--nogo);font-family:var(--mono);font-size:13px">⚠ No METAR available. Check ICAO code.</div></div>`;
+    }
+
+    // Nav block
+    if (navData) {
+      const eteH = Math.floor(navData.ete), eteM = Math.round((navData.ete%1)*60);
+      const ac = ls_get('aircraft', {});
+      const burn = ac.burn_gph;
+      const fuel = burn ? (burn * navData.ete) : null;
+      const res = burn ? (burn * 0.75) : null;
+
+      html += `<div class="card">
+        <div class="card-title">✈ FLIGHT — ${dep} → ${dest}</div>
+        <div class="result-block go">
+          <div class="result-row"><span class="result-label">Distance</span><span class="result-val c-cyan">${navData.dist.toFixed(1)} nm</span></div>
+          <div class="result-row"><span class="result-label">True Course</span><span class="result-val">${navData.tc.toFixed(0)}°</span></div>
+          <div class="result-row"><span class="result-label">Magnetic Heading</span><span class="result-val c-cyan" style="font-size:15px;font-weight:700">${navData.magHdg.toFixed(0)}°</span></div>
+          <div class="result-row"><span class="result-label">Cruise Altitude</span><span class="result-val">${navData.alt.toLocaleString()} ft MSL</span></div>
+          ${navData.winds ? `<div class="result-row"><span class="result-label">Winds Aloft</span><span class="result-val">${navData.winds.dir.toFixed(0)}° @ ${navData.winds.spd.toFixed(0)} kt${navData.winds.temp!=null?' / '+navData.winds.temp.toFixed(0)+'°C':''}</span></div>` : ''}
+          <div class="result-row"><span class="result-label">Ground Speed</span><span class="result-val">${navData.gs.toFixed(0)} kt</span></div>
+          <div class="result-row"><span class="result-label">ETE</span><span class="result-val">${eteH}h ${String(eteM).padStart(2,'0')}m</span></div>
+          ${fuel != null ? `<div class="result-row"><span class="result-label">Fuel + Reserve</span><span class="result-val">${fuel.toFixed(1)} + ${res.toFixed(1)} = ${(fuel+res).toFixed(1)} gal</span></div>` : ''}
+          ${navData.freezeM != null ? `<div class="result-row"><span class="result-label">Freezing Level</span><span class="result-val ${navData.freezeM < navData.alt ? 'c-nogo' : navData.freezeM - navData.alt < 1000 ? 'c-warn' : 'c-go'}">${navData.freezeM.toLocaleString(undefined,{maximumFractionDigits:0})} ft MSL</span></div>` : ''}
+          <div class="result-row"><span class="result-label">Alternate Req'd?</span><span class="result-val ${altRequired?'c-warn':'c-go'}">${altRequired ? '⚠ Consider filing alternate' : '✓ Not indicated'}</span></div>
+        </div>
+      </div>`;
+    }
+
+    // Dest conditions
+    if (dest && destMetar) {
+      const cond = parseConditions(destMetar);
+      const fields = [
+        ['Wind Speed', cond.windSpeed, 'kt', 'wind_speed'],
+        ['Visibility', cond.visibility.toFixed(1), 'sm', 'visibility'],
+        ['Ceiling', cond.ceiling >= 99999 ? 'CLR' : cond.ceiling, cond.ceiling >= 99999 ? '' : 'ft', 'ceiling'],
+        ['Gusts', cond.gusts, 'kt', 'gusts'],
+      ];
+      const results = fields.map(([lbl, val, unit, key]) => ({
+        lbl, val, unit, status: (key==='ceiling' && val==='CLR') ? 'GO' : rate(key, parseFloat(val)||0, lim)
+      }));
+      const overall = results.some(r=>r.status==='NO-GO') ? 'NO-GO' : results.some(r=>r.status==='CAUTION') ? 'CAUTION' : 'GO';
+      allOveralls.push(overall);
+
+      html += `<div class="card">
+        <div class="card-title" style="justify-content:space-between">
+          <span>🛬 DESTINATION — ${dest}${destApt?' ('+destApt.name+')':''}</span>
+          ${statusBadge(overall)}
+        </div>`;
+      if (destMetar.rawOb) html += `<div class="metar-raw">${destMetar.rawOb}</div>`;
+      html += `<div class="result-block ${overall==='NO-GO'?'nogo':overall==='CAUTION'?'caution':'go'}">`;
+      for (const {lbl, val, unit, status} of results) {
+        const cls = statusClass(status);
+        html += `<div class="result-row"><span class="result-label">${lbl}</span><span class="result-val ${cls}">${val}${unit?' '+unit:''} — ${status}</span></div>`;
+      }
+      if (destApt) {
+        const daEl = densityAlt(parseFloat(destApt.elevation_ft)||0, cond.tempC, cond.altim);
+        html += `<div class="result-row"><span class="result-label">Density Altitude</span><span class="result-val ${daEl.da>5000?'c-nogo':daEl.da>2000?'c-warn':'c-dim'}">${daEl.da.toLocaleString()} ft</span></div>`;
+      }
+      html += `</div>`;
+      if (destTaf && destTaf.rawTAF) {
+        html += `<div style="margin-top:10px"><div class="section-title">TAF — ${dest}</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--caution);background:rgba(255,215,64,0.04);border:1px solid rgba(255,215,64,0.1);border-radius:5px;padding:10px;white-space:pre-wrap;word-break:break-all">${destTaf.rawTAF}</div></div>`;
+      }
+      html += `</div>`;
+    } else if (dest) {
+      html += `<div class="card"><div class="card-title">🛬 DESTINATION — ${dest}</div><div style="color:var(--dim);font-family:var(--mono);font-size:13px">No METAR available for destination.</div></div>`;
+    }
+
+    // Overall summary
+    const finalOverall = allOveralls.some(o=>o==='NO-GO') ? 'NO-GO' : allOveralls.some(o=>o==='CAUTION') ? 'CAUTION' : 'GO';
+    const icons = { 'GO': '✅', 'CAUTION': '⚠️', 'NO-GO': '❌' };
+    const msgs = {
+      'GO': 'All conditions within minimums. Blue skies!',
+      'CAUTION': 'Marginal conditions — consult your CFI.',
+      'NO-GO': 'One or more NO-GO conditions. Do not depart.'
+    };
+    html = `<div class="brief-overall ${finalOverall.toLowerCase().replace('-','').replace('nogo','nogo')}">
+      <div class="brief-overall-icon">${icons[finalOverall]}</div>
+      <div class="brief-overall-text ${statusClass(finalOverall)}">${finalOverall}</div>
+      <div class="brief-overall-sub">${msgs[finalOverall]}</div>
+    </div>` + html;
+
+    // Preflight checklist
+    const pilot = ls_get('pilot', {});
+    html += `<div class="card">
+      <div class="card-title">Preflight Checklist</div>
+      <div id="checklist">`;
+    const checks = [
+      ['Weather reviewed (METAR + TAF)', true],
+      ['NOTAMs checked', false],
+      ['Flight plan filed', false],
+      ['Density altitude assessed', !!depMetar],
+      ['AIRMETs / SIGMETs reviewed', !!dest],
+      ['Alternate airport considered', altRequired],
+      ['Aircraft preflight complete', false],
+      ['Passenger briefing complete', false],
+    ];
+    checks.forEach(([item, done], idx) => {
+      html += `<div class="checklist-item">
+        <div class="check-box ${done?'done':''}" onclick="toggleCheck(this)">${done?'✓':''}</div>
+        <div>${item}</div>
+      </div>`;
+    });
+    html += `</div></div>`;
+
+    // Log flight
+    const log = ls_get('flightLog', []);
+    log.unshift({ date: new Date().toISOString(), pilot: pilot.name||'', dep, dest: dest||'', profile: lim.label, overall: finalOverall });
+    ls_set('flightLog', log.slice(0, 20));
+    renderFlightLog();
+
+    el.innerHTML = html;
+
+  } catch(e) {
+    document.getElementById('brief-results').innerHTML = `<div class="card"><div style="color:var(--nogo);font-family:var(--mono);font-size:13px">Error: ${e.message}</div></div>`;
+  }
+}
+
+function toggleCheck(el) {
+  const done = !el.classList.contains('done');
+  el.classList.toggle('done', done);
+  el.textContent = done ? '✓' : '';
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  METAR PAGE
+// ═══════════════════════════════════════════════════════════════
+
+async function runMetarLookup() {
+  const icao = document.getElementById('m-icao').value.trim().toUpperCase();
+  if (!icao) { toast('Enter an ICAO code'); return; }
+  const el = document.getElementById('metar-results');
+  el.innerHTML = loading(`Fetching METAR for ${icao}...`);
+  try {
+    const [m, taf] = await Promise.all([fetchMetar(icao), fetchTaf(icao)]);
+    if (!m) { el.innerHTML = `<div class="card"><div style="color:var(--nogo);font-family:var(--mono);font-size:13px">No METAR found for ${icao}. Check ICAO code.</div></div>`; return; }
+    const cond = parseConditions(m);
+    const decoded = decodeMetar(m.rawOb || '');
+
+    let html = `<div class="card">
+      <div class="card-title">📡 ${icao} — Live METAR</div>
+      <div class="metar-raw">${m.rawOb||''}</div>
+      <div class="result-block">`;
+    for (const [lbl, val] of decoded) {
+      html += `<div class="result-row"><span class="result-label">${lbl}</span><span class="result-val">${val}</span></div>`;
+    }
+    const { pa, da } = densityAlt(parseFloat(m.elev)||0, cond.tempC, cond.altim);
+    html += `<div class="result-row"><span class="result-label">Pressure Alt</span><span class="result-val c-dim">${pa.toLocaleString()} ft</span></div>`;
+    html += `<div class="result-row"><span class="result-label">Density Alt</span><span class="result-val ${da>5000?'c-nogo':da>2000?'c-warn':'c-dim'}">${da.toLocaleString()} ft</span></div>`;
+    html += `</div></div>`;
+
+    if (taf && taf.rawTAF) {
+      html += `<div class="card">
+        <div class="card-title">📋 TAF — ${icao}</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--caution);line-height:1.7;white-space:pre-wrap;word-break:break-all">${taf.rawTAF}</div>
+      </div>`;
+    }
+    el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = `<div class="card"><div style="color:var(--nogo);font-family:var(--mono)">Error: ${e.message}</div></div>`;
+  }
+}
+
+function runDecodeRaw() {
+  const raw = document.getElementById('m-raw').value.trim();
+  if (!raw) { toast('Paste a raw METAR first'); return; }
+  const decoded = decodeMetar(raw);
+  let html = `<div class="card">
+    <div class="card-title">🔍 Decoded METAR</div>
+    <div class="metar-raw">${raw}</div>
+    <div class="result-block">`;
+  for (const [lbl, val] of decoded) {
+    html += `<div class="result-row"><span class="result-label">${lbl}</span><span class="result-val">${val}</span></div>`;
+  }
+  html += `</div></div>`;
+  document.getElementById('metar-results').innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  WINDS PAGE
+// ═══════════════════════════════════════════════════════════════
+
+async function runWinds() {
+  const icao = document.getElementById('w-icao').value.trim().toUpperCase();
+  if (!icao) { toast('Enter an ICAO code'); return; }
+  const el = document.getElementById('winds-results');
+  el.innerHTML = loading('Looking up airport coords...');
+
+  try {
+    const apt = await findAirport(icao);
+    if (!apt) { el.innerHTML = `<div class="card"><div style="color:var(--nogo);font-family:var(--mono);font-size:13px">Airport ${icao} not found.</div></div>`; return; }
+    const lat = parseFloat(apt.latitude_deg), lon = parseFloat(apt.longitude_deg);
+    el.innerHTML = loading(`Fetching winds aloft for ${icao} (${apt.name})...`);
+
+    const levels = [2500,5000,9000,12000,18000,24000,30000];
+    const windData = await Promise.all(levels.map(alt => fetchWindsAloft(lat, lon, alt)));
+
+    let html = `<div class="card">
+      <div class="card-title">💨 Winds Aloft — ${icao}</div>
+      <div style="color:var(--dim);font-family:var(--mono);font-size:12px;margin-bottom:10px">${apt.name}</div>
+      <table class="winds-table">
+        <thead><tr><th>Altitude</th><th>Direction</th><th>Speed</th><th>Temp</th></tr></thead>
+        <tbody>`;
+    levels.forEach((alt, i) => {
+      const w = windData[i];
+      if (w) {
+        html += `<tr>
+          <td>${alt.toLocaleString()} ft</td>
+          <td style="text-align:right">${w.dir.toFixed(0)}°</td>
+          <td style="text-align:right">${w.spd.toFixed(0)} kt</td>
+          <td style="text-align:right">${w.temp != null ? w.temp.toFixed(0)+'°C' : '—'}</td>
+        </tr>`;
+      } else {
+        html += `<tr><td>${alt.toLocaleString()} ft</td><td style="text-align:right">—</td><td style="text-align:right">—</td><td style="text-align:right">—</td></tr>`;
+      }
+    });
+    html += `</tbody></table></div>`;
+    el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = `<div class="card"><div style="color:var(--nogo);font-family:var(--mono)">Error: ${e.message}</div></div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  X-COUNTRY PLANNER
+// ═══════════════════════════════════════════════════════════════
+
+async function runXC() {
+  const routeRaw = document.getElementById('xc-route').value.trim().toUpperCase();
+  const tas = parseFloat(document.getElementById('xc-tas').value) || 110;
+  const alt = parseInt(document.getElementById('xc-alt').value) || 6500;
+  const burn = parseFloat(document.getElementById('xc-burn').value) || null;
+  const icaos = routeRaw.split(/\s+/).filter(Boolean);
+  if (icaos.length < 2) { toast('Enter at least 2 airports'); return; }
+
+  const el = document.getElementById('xc-results');
+  el.innerHTML = loading('Loading airport data...');
+
+  try {
+    const apts = await Promise.all(icaos.map(ic => findAirport(ic)));
+    for (let i=0; i<icaos.length; i++) {
+      if (!apts[i]) { el.innerHTML = `<div class="card"><div style="color:var(--nogo);font-family:var(--mono);font-size:13px">Airport ${icaos[i]} not found.</div></div>`; return; }
+    }
+    el.innerHTML = loading('Fetching winds aloft for each leg...');
+
+    // Compute legs
+    const legs = [];
+    let totalNm = 0, totalHrs = 0, totalFuel = 0;
+    for (let i=0; i<icaos.length-1; i++) {
+      const a = apts[i], b = apts[i+1];
+      const alat = parseFloat(a.latitude_deg), alon = parseFloat(a.longitude_deg);
+      const blat = parseFloat(b.latitude_deg), blon = parseFloat(b.longitude_deg);
+      const dist = haversine(alat, alon, blat, blon);
+      const tc = trueCourse(alat, alon, blat, blon);
+      const midLat = (alat+blat)/2, midLon = (alon+blon)/2;
+      const winds = await fetchWindsAloft(midLat, midLon, alt);
+      let gs = tas, magHdg = tc;
+      if (winds) {
+        const wc = windCorrection(tas, winds.dir, winds.spd, tc);
+        gs = wc.gs;
+        const decl = magDeclination(midLat, midLon);
+        magHdg = (tc + wc.wca + decl + 360) % 360;
+      }
+      const ete = dist / gs;
+      totalNm += dist; totalHrs += ete;
+      if (burn) totalFuel += burn * ete;
+      legs.push({ dep: icaos[i], dest: icaos[i+1], dist, tc, magHdg, gs, ete, winds });
+    }
+
+    let html = `<div class="card">
+      <div class="card-title">✈ Route Plan — ${icaos.join(' → ')}</div>`;
+    for (const leg of legs) {
+      const eteH = Math.floor(leg.ete), eteM = Math.round((leg.ete%1)*60);
+      html += `<div class="leg-row">
+        <div>
+          <div class="leg-icao">${leg.dep} → ${leg.dest}</div>
+          <div class="leg-stats">
+            <span>${leg.dist.toFixed(1)} nm</span>
+            <span>TC ${leg.tc.toFixed(0)}°</span>
+            <span class="c-cyan">Hdg ${leg.magHdg.toFixed(0)}°</span>
+          </div>
+        </div>
+        <div style="text-align:right;font-family:var(--mono);font-size:13px">
+          <div>${leg.gs.toFixed(0)} kt GS</div>
+          <div class="c-dim">${eteH}h ${String(eteM).padStart(2,'0')}m</div>
+        </div>
+      </div>`;
+    }
+    // Totals
+    const th = Math.floor(totalHrs), tm = Math.round((totalHrs%1)*60);
+    html += `<div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:13px">
+      <div><span class="c-dim">TOTAL </span><span class="c-cyan">${totalNm.toFixed(1)} nm</span></div>
+      <div><span class="c-dim">ETE </span><span class="c-cyan">${th}h ${String(tm).padStart(2,'0')}m</span></div>
+      ${burn ? `<div><span class="c-dim">FUEL </span><span class="c-cyan">${totalFuel.toFixed(1)}+${(burn*0.75).toFixed(1)}g</span></div>` : ''}
+    </div>`;
+    html += `</div>`;
+    el.innerHTML = html;
+  } catch(e) {
+    el.innerHTML = `<div class="card"><div style="color:var(--nogo);font-family:var(--mono)">Error: ${e.message}</div></div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  E6B
+// ═══════════════════════════════════════════════════════════════
+
+const E6B_INPUTS = {
+  tsd: [
+    { id:'tsd-d', label:'Distance (nm)', ph:'Leave blank if unknown' },
+    { id:'tsd-s', label:'Speed (kt)',     ph:'Leave blank if unknown' },
+    { id:'tsd-t', label:'Time (min)',     ph:'Leave blank if unknown' },
+  ],
+  fuel: [
+    { id:'fu-rate', label:'Burn Rate (gal/hr)', ph:'8.5' },
+    { id:'fu-time', label:'Flight Time (min)',   ph:'90' },
+  ],
+  wca: [
+    { id:'wca-tc', label:'True Course (°)',    ph:'270' },
+    { id:'wca-tas',label:'TAS (kt)',           ph:'110' },
+    { id:'wca-wd', label:'Wind Direction (°)', ph:'240' },
+    { id:'wca-ws', label:'Wind Speed (kt)',    ph:'15' },
+  ],
+  da: [
+    { id:'da-elev', label:'Field Elevation (ft)', ph:'2000' },
+    { id:'da-temp', label:'OAT (°C)',              ph:'25' },
+    { id:'da-altm', label:'Altimeter (inHg)',      ph:'29.92' },
+  ],
+  tas: [
+    { id:'tas-ias', label:'IAS (kt)',         ph:'100' },
+    { id:'tas-alt', label:'Altitude (ft)',    ph:'8000' },
+    { id:'tas-tmp', label:'OAT (°C)',         ph:'5' },
+  ],
+  conv: [
+    { id:'cv-type', label:'Conversion', type:'select', options:[
+      ['nm_sm','nm → sm'],['sm_nm','sm → nm'],['ft_m','ft → m'],['m_ft','m → ft'],
+      ['kg_lb','kg → lb'],['lb_kg','lb → kg'],['c_f','°C → °F'],['f_c','°F → °C'],
+      ['inhg_hpa','inHg → hPa'],['hpa_inhg','hPa → inHg'],
+    ]},
+    { id:'cv-val', label:'Value', ph:'100' },
+  ],
+  wb: [
+    { id:'wb-ew', label:'Empty Weight (lbs)',      ph:'1600' },
+    { id:'wb-ea', label:'Empty Arm (in)',          ph:'38.5' },
+    { id:'wb-pilot',label:'Pilot Weight (lbs)',    ph:'170' },
+    { id:'wb-pa',   label:'Pilot Arm (in)',        ph:'37' },
+    { id:'wb-pax',  label:'Pax Weight (lbs)',      ph:'0' },
+    { id:'wb-paxarm',label:'Pax Arm (in)',         ph:'73' },
+    { id:'wb-fuel', label:'Fuel Weight (lbs)',     ph:'240' },
+    { id:'wb-fa',   label:'Fuel Arm (in)',         ph:'48' },
+    { id:'wb-bag',  label:'Baggage Weight (lbs)',  ph:'0' },
+    { id:'wb-baga', label:'Baggage Arm (in)',      ph:'95' },
+    { id:'wb-mtow', label:'Max Gross Weight (lbs)',ph:'2550' },
+    { id:'wb-fwd',  label:'Fwd CG Limit (in)',    ph:'35.5' },
+    { id:'wb-aft',  label:'Aft CG Limit (in)',    ph:'47.3' },
+  ],
+};
+
+function renderE6bInputs() {
+  const mode = document.getElementById('e6b-mode').value;
+  const fields = E6B_INPUTS[mode] || [];
+  let html = '';
+  for (const f of fields) {
+    if (f.type === 'select') {
+      html += `<div class="field" style="margin-bottom:12px"><label>${f.label}</label>
+        <select id="${f.id}" style="width:100%;background:var(--panel);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:var(--mono);font-size:14px;padding:9px 12px;outline:none">
+        ${f.options.map(([v,l]) => `<option value="${v}">${l}</option>`).join('')}
+        </select></div>`;
+    } else {
+      html += `<div class="field" style="margin-bottom:12px"><label>${f.label}</label>
+        <input type="number" id="${f.id}" placeholder="${f.ph||''}"></div>`;
+    }
+  }
+  document.getElementById('e6b-inputs').innerHTML = html;
+  document.getElementById('e6b-result').style.display = 'none';
+}
+
+function runE6b() {
+  const mode = document.getElementById('e6b-mode').value;
+  const g = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+  const n = id => parseFloat(g(id)) || 0;
+  let lines = [];
+
+  if (mode === 'tsd') {
+    const d = g('tsd-d') ? parseFloat(g('tsd-d')) : null;
+    const s = g('tsd-s') ? parseFloat(g('tsd-s')) : null;
+    const t = g('tsd-t') ? parseFloat(g('tsd-t'))/60 : null;
+    if (d&&s) { const T=d/s; lines=[`Time = ${(T*60).toFixed(1)} min  (${Math.floor(T)}h ${String(Math.round((T%1)*60)).padStart(2,'0')}m)`]; }
+    else if (d&&t) lines=[`Speed = ${(d/t).toFixed(1)} kt`];
+    else if (s&&t) lines=[`Distance = ${(s*t).toFixed(1)} nm`];
+    else lines=['Enter at least 2 values.'];
+  } else if (mode === 'fuel') {
+    const b=n('fu-rate'), m=n('fu-time'), h=m/60;
+    const fuel=b*h, res=b*0.75;
+    lines=[`Flight fuel: ${fuel.toFixed(1)} gal`,`45-min reserve: ${res.toFixed(1)} gal`,`Total needed: ${(fuel+res).toFixed(1)} gal`];
+  } else if (mode === 'wca') {
+    const tc=n('wca-tc'), tas=n('wca-tas'), wd=n('wca-wd'), ws=n('wca-ws');
+    const {wca, hdg, gs} = windCorrection(tas, wd, ws, tc);
+    lines=[`Wind correction: ${wca > 0 ? '+' : ''}${wca.toFixed(1)}° (${wca>0?'left':wca<0?'right':'none'})`,`True heading: ${hdg.toFixed(0)}°`,`Ground speed: ${gs.toFixed(0)} kt`];
+  } else if (mode === 'da') {
+    const {pa,da} = densityAlt(n('da-elev'), n('da-temp'), n('da-altm')||29.92);
+    lines=[`Pressure altitude: ${pa.toLocaleString()} ft`,`Density altitude:  ${da.toLocaleString()} ft`];
+    if (da-n('da-elev')>2000) lines.push('⚠ HIGH DA — significant performance loss!');
+    else if (da-n('da-elev')>1000) lines.push('⚠ Elevated DA — reduced performance.');
+    else lines.push('✓ DA effect is minimal.');
+  } else if (mode === 'tas') {
+    const ias=n('tas-ias'), alt=n('tas-alt'), tmp=n('tas-tmp');
+    const tas=iasTas(ias, alt, tmp);
+    lines=[`IAS ${ias} kt  →  TAS ${tas} kt`,`(at ${alt.toLocaleString()} ft / ${tmp}°C)`];
+  } else if (mode === 'conv') {
+    const type=g('cv-type'), val=n('cv-val');
+    const convMap = {
+      nm_sm: v=>`${v} nm = ${(v*1.15078).toFixed(2)} sm`,
+      sm_nm: v=>`${v} sm = ${(v/1.15078).toFixed(2)} nm`,
+      ft_m:  v=>`${v} ft = ${(v*0.3048).toFixed(1)} m`,
+      m_ft:  v=>`${v} m = ${(v/0.3048).toFixed(1)} ft`,
+      kg_lb: v=>`${v} kg = ${(v*2.20462).toFixed(1)} lbs`,
+      lb_kg: v=>`${v} lbs = ${(v/2.20462).toFixed(1)} kg`,
+      c_f:   v=>`${v}°C = ${(v*9/5+32).toFixed(1)}°F`,
+      f_c:   v=>`${v}°F = ${((v-32)*5/9).toFixed(1)}°C`,
+      inhg_hpa: v=>`${v} inHg = ${(v*33.8639).toFixed(1)} hPa`,
+      hpa_inhg: v=>`${v} hPa = ${(v/33.8639).toFixed(2)} inHg`,
+    };
+    lines=[convMap[type]?convMap[type](val):'—'];
+  } else if (mode === 'wb') {
+    const items = [
+      ['Empty Wt', n('wb-ew'), n('wb-ea')],
+      ['Pilot', n('wb-pilot'), n('wb-pa')],
+      ['Pax', n('wb-pax'), n('wb-paxarm')],
+      ['Fuel', n('wb-fuel'), n('wb-fa')],
+      ['Baggage', n('wb-bag'), n('wb-baga')],
+    ].filter(([,w,]) => w > 0);
+    const tw = items.reduce((s,[,w,])=>s+w,0);
+    const tm = items.reduce((s,[,w,a])=>s+w*a,0);
+    const cg = tw > 0 ? tm/tw : 0;
+    lines = items.map(([lbl,w,a])=>`${lbl.padEnd(10)} ${w.toFixed(1).padStart(7)} lbs × ${a} in = ${(w*a).toFixed(1)}`);
+    lines.push('─'.repeat(40));
+    lines.push(`Total Weight: ${tw.toFixed(1)} lbs`);
+    lines.push(`CG: ${cg.toFixed(2)} inches from datum`);
+    const mtow=n('wb-mtow'), fwd=n('wb-fwd'), aft=n('wb-aft');
+    if (mtow) lines.push(tw>mtow?`❌ OVERWEIGHT by ${(tw-mtow).toFixed(1)} lbs!`:`✓ Weight OK (${(mtow-tw).toFixed(1)} lbs under MTOW)`);
+    if (fwd) lines.push(cg<fwd?`❌ CG FORWARD of limit (${fwd} in)!`:`✓ CG fwd limit OK`);
+    if (aft) lines.push(cg>aft?`❌ CG AFT of limit (${aft} in)!`:`✓ CG aft limit OK`);
+  }
+
+  const el = document.getElementById('e6b-result');
+  el.style.display = 'block';
+  el.innerHTML = lines.map(l => {
+    const cls = l.startsWith('❌') ? 'c-nogo' : l.startsWith('⚠') ? 'c-warn' : l.startsWith('✓') ? 'c-go' : '';
+    return `<div class="${cls}">${l}</div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  QUIZ
+// ═══════════════════════════════════════════════════════════════
+
+let quizState = { questions: [], idx: 0, score: 0 };
+
+function startQuiz() {
+  const cat = document.getElementById('q-cat').value;
+  const num = parseInt(document.getElementById('q-num').value) || 5;
+  const bankMap = { all: ALL_QUIZ, general: QUIZ_BANK, airspace: AIRSPACE_QUIZ, weather: WEATHER_QUIZ, regs: REGS_QUIZ };
+  const pool = shuffle(bankMap[cat] || ALL_QUIZ).slice(0, num);
+  quizState = { questions: pool, idx: 0, score: 0 };
+  document.getElementById('quiz-setup').style.display = 'none';
+  document.getElementById('quiz-done').style.display = 'none';
+  document.getElementById('quiz-active').style.display = 'block';
+  showQuestion();
+}
+
+function showQuestion() {
+  const { questions, idx } = quizState;
+  if (idx >= questions.length) { finishQuiz(); return; }
+  const [q, a] = questions[idx];
+  document.getElementById('quiz-prog').textContent = `Q ${idx+1} / ${questions.length}`;
+  document.getElementById('quiz-bar').style.width = `${(idx/questions.length)*100}%`;
+  document.getElementById('quiz-question').textContent = q;
+  document.getElementById('quiz-answer').textContent = a;
+  document.getElementById('quiz-answer').classList.remove('visible');
+  document.getElementById('quiz-btns').innerHTML = `<button class="btn btn-secondary" style="flex:1" id="btn-reveal">REVEAL ANSWER</button>`;
+  document.getElementById('btn-reveal').onclick = revealAnswer;
+}
+
+function revealAnswer() {
+  document.getElementById('quiz-answer').classList.add('visible');
+  document.getElementById('quiz-btns').innerHTML = `
+    <button class="btn" style="flex:1;background:rgba(255,68,68,0.15);color:var(--nogo);border:1px solid rgba(255,68,68,0.3)" id="btn-wrong">✗ MISSED</button>
+    <button class="btn" style="flex:1;background:rgba(0,230,118,0.15);color:var(--go);border:1px solid rgba(0,230,118,0.3)" id="btn-correct">✓ GOT IT</button>`;
+  document.getElementById('btn-wrong').onclick = () => { quizState.idx++; showQuestion(); };
+  document.getElementById('btn-correct').onclick = () => { quizState.score++; quizState.idx++; showQuestion(); };
+}
+
+function finishQuiz() {
+  document.getElementById('quiz-active').style.display = 'none';
+  document.getElementById('quiz-done').style.display = 'block';
+  const { score, questions } = quizState;
+  const pct = Math.round(score/questions.length*100);
+  const dsp = document.getElementById('quiz-score-display');
+  dsp.textContent = `${score}/${questions.length}`;
+  dsp.style.color = pct >= 80 ? 'var(--go)' : pct >= 60 ? 'var(--caution)' : 'var(--nogo)';
+  const msgs = {
+    100: '✈ Perfect score — outstanding!',
+    80:  '✓ Great — review the ones you missed.',
+    60:  '⚠ Passing — study before your next flight.',
+    0:   '❌ Below 60% — more study needed.',
+  };
+  const msg = Object.entries(msgs).reverse().find(([t]) => pct >= parseInt(t));
+  document.getElementById('quiz-score-msg').textContent = msg ? msg[1] : '';
+}
+
+document.getElementById('btn-quiz-restart').onclick = () => {
+  document.getElementById('quiz-done').style.display = 'none';
+  document.getElementById('quiz-setup').style.display = 'block';
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  PROFILE
+// ═══════════════════════════════════════════════════════════════
+
+function loadProfile() {
+  const p = ls_get('pilot', {});
+  if (p.name) document.getElementById('p-name').value = p.name;
+  if (p.rating) document.getElementById('p-rating').value = p.rating;
+  const ac = ls_get('aircraft', {});
+  if (ac.name) document.getElementById('ac-name').value = ac.name;
+  if (ac.tas_kt) document.getElementById('ac-tas').value = ac.tas_kt;
+  if (ac.climb_fpm) document.getElementById('ac-climb').value = ac.climb_fpm;
+  if (ac.burn_gph) document.getElementById('ac-burn').value = ac.burn_gph;
+  renderFlightLog();
+}
+
+function renderFlightLog() {
+  const log = ls_get('flightLog', []);
+  const el = document.getElementById('flight-log-list');
+  if (!el) return;
+  if (!log.length) { el.innerHTML = `<div style="color:var(--dim);font-family:var(--mono);font-size:13px">No flights logged yet.</div>`; return; }
+  el.innerHTML = log.slice(0,10).map(f => {
+    const d = new Date(f.date);
+    const dateStr = `${d.getUTCMonth()+1}/${d.getUTCDate()} ${String(d.getUTCHours()).padStart(2,'0')}:${String(d.getUTCMinutes()).padStart(2,'0')}Z`;
+    const cls = f.overall === 'GO' ? 'c-go' : f.overall === 'NO-GO' ? 'c-nogo' : 'c-warn';
+    return `<div class="result-row">
+      <span style="font-family:var(--mono);font-size:12px"><span class="c-cyan">${f.dep}${f.dest?' → '+f.dest:''}</span> <span class="c-dim">${dateStr}</span></span>
+      <span class="badge ${f.overall==='GO'?'badge-go':f.overall==='NO-GO'?'badge-nogo':'badge-caution'}" style="font-size:10px">${f.overall||'—'}</span>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  CLOCK
+// ═══════════════════════════════════════════════════════════════
+
+function updateClock() {
+  const now = new Date();
+  const s = `${String(now.getUTCHours()).padStart(2,'0')}:${String(now.getUTCMinutes()).padStart(2,'0')}:${String(now.getUTCSeconds()).padStart(2,'0')} UTC`;
+  document.getElementById('clock').textContent = s;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ═══════════════════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════════════════
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('page-' + tab.dataset.page).classList.add('active');
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  EVENT BINDINGS
+// ═══════════════════════════════════════════════════════════════
+
+document.getElementById('btn-brief').onclick = runBrief;
+document.getElementById('btn-metar').onclick = runMetarLookup;
+document.getElementById('btn-decode').onclick = runDecodeRaw;
+document.getElementById('btn-winds').onclick = runWinds;
+document.getElementById('btn-xc').onclick = runXC;
+document.getElementById('btn-e6b').onclick = runE6b;
+document.getElementById('btn-quiz-start').onclick = startQuiz;
+
+document.getElementById('e6b-mode').addEventListener('change', renderE6bInputs);
+
+document.getElementById('btn-save-profile').onclick = () => {
+  const p = { name: document.getElementById('p-name').value, rating: document.getElementById('p-rating').value };
+  ls_set('pilot', p);
+  document.getElementById('profile-saved').style.display = 'block';
+  toast('Profile saved!');
+};
+
+document.getElementById('btn-save-ac').onclick = () => {
+  const ac = {
+    name:      document.getElementById('ac-name').value,
+    tas_kt:    parseFloat(document.getElementById('ac-tas').value)||null,
+    climb_fpm: parseFloat(document.getElementById('ac-climb').value)||null,
+    burn_gph:  parseFloat(document.getElementById('ac-burn').value)||null,
+  };
+  ls_set('aircraft', ac);
+  document.getElementById('ac-saved').style.display = 'block';
+  toast('Aircraft saved!');
+};
+
+// Enter key triggers search on ICAO inputs
+['m-icao','w-icao'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => {
+    if (e.key==='Enter') { id==='m-icao' ? runMetarLookup() : runWinds(); }
+  });
+});
+document.getElementById('b-dep').addEventListener('keydown', e => { if (e.key==='Enter') runBrief(); });
+
+// ═══════════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════════
+
+renderE6bInputs();
+loadProfile();
+
+// Pre-fill from saved profile
+const savedPilot = ls_get('pilot', {});
+if (savedPilot.name) {
+  document.querySelector('#page-brief .card-title').textContent;
+}
+</script>
+</body>
+</html>
