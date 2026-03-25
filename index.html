@@ -920,19 +920,32 @@ function iasTas(ias, altFt, tempC) {
 //  NETWORK HELPERS
 // ═══════════════════════════════════════════════════════════════
 
-const PROXY = 'https://corsproxy.io/?';
+const PROXIES = [
+  u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+  u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+];
 
 async function fetchJSON(url, useProxy=false) {
-  const u = useProxy ? PROXY + encodeURIComponent(url) : url;
-  const r = await fetch(u, { headers: { 'Accept': 'application/json' } });
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
-  return r.json();
+  if (!useProxy) {
+    const r = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
+  }
+  let lastErr;
+  for (const proxy of PROXIES) {
+    try {
+      const r = await fetch(proxy(url), { headers: { 'Accept': 'application/json' } });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return await r.json();
+    } catch(e) { lastErr = e; }
+  }
+  throw lastErr;
 }
 
 async function fetchMetar(icao) {
   const url = `https://aviationweather.gov/api/data/metar?ids=${icao.toUpperCase()}&format=json`;
   try {
-    const data = await fetchJSON(url);
+    const data = await fetchJSON(url, true);
     return data && data.length ? data[0] : null;
   } catch { return null; }
 }
@@ -940,7 +953,7 @@ async function fetchMetar(icao) {
 async function fetchTaf(icao) {
   const url = `https://aviationweather.gov/api/data/taf?ids=${icao.toUpperCase()}&format=json`;
   try {
-    const data = await fetchJSON(url);
+    const data = await fetchJSON(url, true);
     return data && data.length ? data[0] : null;
   } catch { return null; }
 }
@@ -980,8 +993,14 @@ async function getAirports() {
   if (_apCache) return _apCache;
   const url = 'https://davidmegginson.github.io/ourairports-data/airports.csv';
   try {
-    const r = await fetch(PROXY + encodeURIComponent(url));
-    const text = await r.text();
+    let text = null;
+    for (const proxy of PROXIES) {
+      try {
+        const r = await fetch(proxy(url));
+        if (r.ok) { text = await r.text(); break; }
+      } catch {}
+    }
+    if (!text) throw new Error('All proxies failed');
     const rows = text.trim().split('\n');
     const hdr = rows[0].split(',').map(h => h.replace(/"/g,'').trim());
     _apCache = rows.slice(1).map(row => {
